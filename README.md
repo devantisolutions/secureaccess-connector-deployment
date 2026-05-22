@@ -1,3 +1,9 @@
+
+---
+
+# Updated GitHub README.md (Copy-Paste Version)
+
+```markdown
 <p align="center">
   <img src="https://devantisolutions.com/Devanti_Solutions_logo.png" width="220">
 </p>
@@ -14,7 +20,13 @@ The Devanti SecureAccess Connector is a lightweight outbound-only secure connect
 
 The connector enables secure access to private applications without opening inbound firewall ports.
 
-Supported deployment models:
+New dynamic connector deployments use token-authenticated onboarding with secure WSS connectivity to the Devanti Gateway.
+
+Legacy mTLS connector deployments remain supported.
+
+---
+
+# Supported Deployment Models
 
 - VMware OVA Appliance
 - Docker Deployment
@@ -53,6 +65,22 @@ Supported deployment models:
 
 ---
 
+# Customer Connector Flow
+
+1. Admin creates a connector record.
+2. Admin generates onboarding token.
+3. Customer deploys Connector OVA or Docker container.
+4. Customer configures:
+   - Static IP
+   - DNS
+   - Gateway URL
+   - Connector Token
+5. Connector registers with Devanti Control Plane.
+6. Connector establishes secure WSS tunnel to Gateway.
+7. Admin verifies connector online status.
+
+---
+
 # Network Requirements
 
 The connector requires outbound internet access only.
@@ -63,196 +91,34 @@ The connector requires outbound internet access only.
 |---|---|---|
 | TCP | 9443 | access.devantisolutions.com |
 | TCP | 443 | hub.docker.com |
+| TCP | 443 | auth.docker.io |
+| TCP | 443 | production.cloudflare.docker.com |
 
 No inbound firewall ports from Devanti are required.
+
+The local connector HTTPS management UI listens only on TCP 443 inside the customer management network.
 
 ---
 
 # Install Docker
 
-Update the system:
+## Update the System
 
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
 
-Install required packages:
-
-```bash
-sudo apt install -y ca-certificates curl gnupg lsb-release
-```
-
-Add Docker repository:
-
-```bash
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-```
-
-```bash
-echo \
-"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
-https://download.docker.com/linux/ubuntu \
-$(lsb_release -cs) stable" | \
-sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-```
-
-Install Docker:
-
-```bash
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-```
-
-Enable Docker:
-
-```bash
-sudo systemctl enable --now docker
-```
-
-Verify Docker:
-
-```bash
-docker version
-```
-
 ---
-
-# Pull Connector Image
-
-```bash
-docker pull devantisolutions/secureaccess-connector:latest
-```
-
----
-
-# Create Connector Configuration Directory
-
-```bash
-sudo mkdir -p /etc/devanti/connector
-```
-
----
-
-# Run Connector Container
-
-```bash
-docker run -d \
---name devanti-connector \
---restart unless-stopped \
--p 443:443 \
--v /etc/devanti/connector:/etc/devanti/connector \
-devantisolutions/secureaccess-connector:latest
-```
-
----
-
-# Access Local Management UI
-
-Open browser:
-
-```text
-https://<connector-ip>
-```
-
-Accept the self-signed certificate warning during first login.
-
----
-
-# Initial Configuration
-
-Configure:
-
-- Connector ID
-- Connector Token
-- Gateway URL
-- Network Settings
-- DNS
-- Hostname
-
-Save the configuration to establish the secure tunnel.
-
----
-
-# Security Features
-
-- Outbound-only secure communication
-- mTLS encrypted tunnel
-- HTTPS local management UI
-- Identity-aware access
-- Secure session handling
-- Zero Trust architecture
-- Role-based access control
-- Secure connector updates
-
----
-
-# Update Connector
-
-Pull latest image:
-
-```bash
-docker pull devantisolutions/secureaccess-connector:latest
-```
-
-Restart connector:
-
-```bash
-docker restart devanti-connector
-```
-
----
-
-# Troubleshooting
-
-Check container status:
-
-```bash
-docker ps
-```
-
-Check logs:
-
-```bash
-docker logs devanti-connector --tail=100
-```
-
-Check connectivity:
-
-```bash
-curl -vk https://access.devantisolutions.com:9443
-```
-
----
-
-# OVA Deployment
-
-For enterprise VMware deployments, Devanti Solutions also provides a prebuilt OVA connector appliance for simplified onboarding.
-
----
-
-# SaaS Platform
-
-Customers access applications securely through the Devanti SecureAccess cloud platform without deploying core infrastructure components.
-
-Product Website:
+## Product Website
 
 https://devantisolutions.com/devanti-secure-access
 
 ---
 
-# Company
-
-## Devanti Solutions
-
+## Company
+Devanti Solutions  
 Smart Infra Intelligence
 
 https://devantisolutions.com
 
----
 
-# Support
-
-For deployment assistance, onboarding, or enterprise integration support:
-
-https://devantisolutions.com/contact
