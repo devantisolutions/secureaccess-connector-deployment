@@ -103,16 +103,274 @@ sudo apt update && sudo apt upgrade -y
 ```
 
 ---
-## Product Website
+
+## Install Required Packages
+
+```bash
+sudo apt install -y ca-certificates curl gnupg lsb-release
+```
+
+---
+
+## Add Docker Repository
+
+```bash
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+```
+
+```bash
+echo \
+"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
+https://download.docker.com/linux/ubuntu \
+$(lsb_release -cs) stable" | \
+sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+---
+
+## Install Docker
+
+```bash
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+```
+
+---
+
+## Enable Docker
+
+```bash
+sudo systemctl enable --now docker
+```
+
+---
+
+## Verify Docker
+
+```bash
+docker version
+```
+
+---
+
+# Public Docker Hub Image
+
+```bash
+docker pull devantisolutions/secureaccess-connector:latest
+```
+
+---
+
+# Create Connector Configuration Directory
+
+```bash
+sudo mkdir -p /etc/devanti/connector
+```
+
+---
+
+# Example Runtime Configuration
+
+## Example config.yaml
+
+```yaml
+connector_id: "c_bangalore-lab-new_wcg4nq"
+gateway_url: "https://access.devantisolutions.com:9443"
+gateway_ws_url: "wss://access.devantisolutions.com:9443/api/v1/connectors/ws"
+log_level: "info"
+reconnect_interval: "5s"
+
+mtls:
+  enabled: false
+
+tls:
+  mode: "strict"
+```
+
+---
+
+## Example connector.env
+
+```env
+CONNECTOR_CONFIG_FILE=/etc/devanti/connector/config.yaml
+CONNECTOR_MTLS_ENABLED=false
+CONNECTOR_TOKEN=<connector-token>
+GATEWAY_URL=https://access.devantisolutions.com:9443
+GATEWAY_WS_URL=wss://access.devantisolutions.com:9443/api/v1/connectors/ws
+CONNECTOR_ID=c_bangalore-lab-new_wcg4nq
+CONNECTOR_TLS_MODE=strict
+```
+
+---
+
+# Run Connector Container
+
+```bash
+docker run -d \
+  --name devanti-connector \
+  --restart unless-stopped \
+  -p 443:443 \
+  -v /etc/devanti/connector:/etc/devanti/connector:rw \
+  devantisolutions/secureaccess-connector:latest
+```
+
+---
+
+# Access Local Management UI
+
+Open browser:
+
+```text
+https://<connector-ip>
+```
+
+Accept the self-signed certificate warning during first login.
+
+---
+
+# Connector UI Repository Settings
+
+Public customer deployments should use:
+
+```text
+Repository Server: docker.io
+Connector Image: devantisolutions/secureaccess-connector:latest
+```
+
+---
+
+# Initial Configuration
+
+Configure:
+
+- Connector ID
+- Connector Token
+- Gateway URL
+- DNS
+- Network Settings
+- Hostname
+
+Save configuration to establish the secure tunnel.
+
+---
+
+# Security Features
+
+- Outbound-only secure communication
+- Token-authenticated onboarding
+- WSS encrypted tunnel
+- Optional legacy mTLS support
+- HTTPS local management UI
+- Identity-aware access
+- Secure session handling
+- Zero Trust architecture
+- Role-based access control
+
+---
+
+# Update Connector
+
+## Pull Latest Image
+
+```bash
+docker pull devantisolutions/secureaccess-connector:latest
+```
+
+---
+
+## Restart Connector
+
+```bash
+docker restart devanti-connector
+```
+
+---
+
+# Validation
+
+## Check Container Status
+
+```bash
+docker ps
+```
+
+---
+
+## Check Logs
+
+```bash
+docker logs devanti-connector --tail=100
+```
+
+---
+
+## Check Gateway Connectivity
+
+```bash
+curl -vk https://access.devantisolutions.com:9443
+```
+
+---
+
+## Verify Docker Hub Pull
+
+```bash
+docker pull devantisolutions/secureaccess-connector:latest
+```
+
+---
+
+# Expected Connector Logs
+
+Expected successful logs include:
+
+- connector registered
+- connector websocket auth success
+- connector tunnel connected
+
+---
+
+# Admin Portal Validation
+
+Admin Portal should display:
+
+- connector online status
+- heartbeat updates
+- active tunnel status
+- accessible mapped resources
+
+---
+
+# OVA Deployment
+
+For VMware enterprise deployments, Devanti Solutions also provides a prebuilt Connector OVA appliance for simplified onboarding.
+
+---
+
+# SaaS Platform
+
+Customers securely access applications through the Devanti SecureAccess cloud platform without deploying core infrastructure components.
+
+---
+
+# Product Website
 
 https://devantisolutions.com/devanti-secure-access
 
 ---
 
-## Company
+# Company
+
 Devanti Solutions  
 Smart Infra Intelligence
 
 https://devantisolutions.com
 
+---
 
+# Support
+
+For deployment assistance, onboarding, or enterprise integration support:
+
+https://devantisolutions.com/contact
