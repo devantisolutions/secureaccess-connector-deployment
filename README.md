@@ -1,9 +1,3 @@
-
----
-
-# Updated GitHub README.md (Copy-Paste Version)
-
-```markdown
 <p align="center">
   <img src="https://devantisolutions.com/Devanti_Solutions_logo.png" width="220">
 </p>
