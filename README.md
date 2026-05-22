@@ -62,7 +62,7 @@ The connector requires outbound internet access only.
 | Protocol | Port | Destination |
 |---|---|---|
 | TCP | 9443 | access.devantisolutions.com |
-| TCP | 443 | repo.devantisolutions.com |
+| TCP | 443 | hub.docker.com |
 
 No inbound firewall ports from Devanti are required.
 
