@@ -373,4 +373,4 @@ https://devantisolutions.com
 
 For deployment assistance, onboarding, or enterprise integration support:
 
-https://devantisolutions.com/contact
+https://devantisolutions.com/support
