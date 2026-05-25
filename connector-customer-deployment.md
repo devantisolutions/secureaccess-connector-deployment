@@ -168,7 +168,6 @@ It calls local endpoints such as `/api/appliance`, `/api/status`,
 `/api/logs`, and `/api/update/check`; those endpoints read/write local files
 under `/etc/devanti/connector` and run the host-mounted update command.
 
-Internal Harbor images such as `repo.devantisolutions.com/ztna/connector:latest` and lab images such as `repo.access.arraypmlab.in/ztna/connector:latest` are for internal Devanti validation only, not public customer defaults.
 
 ## Local Connector UI Repository Fields
 
