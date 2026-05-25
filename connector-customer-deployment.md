@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://devantisolutions.com/Devanti_Solutions_logo.png" width="220">
+</p>
+
 # Connector Customer Deployment
 
 The Connector is installed at the customer/private site and opens an outbound
@@ -231,3 +235,24 @@ In Admin Portal:
 - last_seen updates
 - gateway tunnel active
 - mapped HTTP/HTTPS/RDP/SSH resources launch through that connector
+
+# Product Website
+
+https://devantisolutions.com/devanti-secure-access
+
+---
+
+# Company
+
+Devanti Solutions  
+Smart Infra Intelligence
+
+https://devantisolutions.com
+
+---
+
+# Support
+
+For deployment assistance, onboarding, or enterprise integration support:
+
+https://devantisolutions.com/support
