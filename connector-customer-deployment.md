@@ -185,13 +185,6 @@ Use this exact image value:
 devantisolutions/secureaccess-connector:latest
 ```
 
-Current connector builds normalize older default registry values such as `repo.devantisolutions.com/ztna/connector:latest` and `repo.access.arraypmlab.in/ztna/connector:latest` to the Docker Hub public default. If an upgraded appliance still shows:
-
-```text
-Repository: repo.devantisolutions.com
-Image: repo.devantisolutions.com/ztna/connector:latest
-```
-
 then the VM is probably still using an older systemd unit that hardcoded the lab/private image. Install the current `devanti-connector.service`, run `sudo systemctl daemon-reload`, and restart `devanti-connector`. The current unit honors `CONNECTOR_IMAGE`, normalizes legacy defaults, and starts the container with `devantisolutions/secureaccess-connector:latest` unless a custom image is intentionally configured.
 
 ## Installer Template
