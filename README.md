@@ -1,32 +1,67 @@
+# Devanti SecureAccess Connector Deployment
+
 <p align="center">
   <img src="https://devantisolutions.com/Devanti_Solutions_logo.png" width="220">
 </p>
 
-# Devanti SecureAccess Connector Deployment
-
-Deployment and onboarding guide for the Devanti SecureAccess Connector.
+<p align="center">
+  <b>Deployment and onboarding guide for the Devanti SecureAccess Connector</b>
+</p>
 
 ---
 
 # Overview
 
-The Devanti SecureAccess Connector is a lightweight outbound-only secure connector used to establish encrypted tunnels between customer environments and the Devanti SecureAccess Zero Trust platform.
+The Devanti SecureAccess Connector is a lightweight outbound-only secure connector used to establish encrypted tunnels between customer/private environments and the Devanti SecureAccess Zero Trust platform.
 
 The connector enables secure access to private applications without opening inbound firewall ports.
 
 New dynamic connector deployments use token-authenticated onboarding with secure WSS connectivity to the Devanti Gateway.
 
-Legacy mTLS connector deployments remain supported.
+Legacy mTLS connector deployments remain supported for enterprise deployments.
+
+---
+
+# Key Features
+
+* Outbound-only secure connectivity
+* No inbound firewall exposure required
+* Secure WSS encrypted tunnel
+* Token-authenticated onboarding
+* Connector-specific mTLS certificates
+* HTTPS local management UI
+* Docker-based deployment
+* VMware OVA appliance support
+* MSP / MSSP multi-site deployment support
+* Identity-aware Zero Trust access
+* Secure HTTP / HTTPS / RDP / SSH publishing
+* Centralized cloud management
+* Connector auto-update support
 
 ---
 
 # Supported Deployment Models
 
-- VMware OVA Appliance
-- Docker Deployment
-- Ubuntu VM Deployment
-- Bare-metal Linux Deployment
-- MSP / MSSP Multi-site Deployment
+* VMware OVA Appliance
+* Docker Deployment
+* Ubuntu VM Deployment
+* Bare-metal Linux Deployment
+* MSP / MSSP Multi-site Deployment
+* Cloud VM Deployment
+
+---
+
+# Supported Platforms
+
+* VMware ESXi
+* Proxmox
+* Hyper-V
+* KVM
+* Nutanix AHV
+* AWS EC2
+* Microsoft Azure VM
+* Google Cloud VM
+* Bare-metal Ubuntu Server
 
 ---
 
@@ -34,44 +69,132 @@ Legacy mTLS connector deployments remain supported.
 
 ## Recommended VM Resources
 
-| Component | Requirement |
-|---|---|
-| OS | Ubuntu Server 22.04 LTS |
-| vCPU | 2 |
-| RAM | 4 GB |
-| Storage | 40 GB |
-| Network | 1 NIC |
-| Internet | Required |
+| Category              | Details                 |
+| --------------------- | ----------------------- |
+| Operating System      | Ubuntu Server 22.04 LTS |
+| vCPU                  | 2                       |
+| Memory (RAM)          | 4 GB                    |
+| Storage               | 40 GB                   |
+| Network Interface     | 1 NIC                   |
+| Internet Connectivity | Required                |
 
 ---
 
-# Supported Platforms
+## Recommended Production Sizing
 
-- VMware ESXi
-- Proxmox
-- Hyper-V
-- KVM
-- Nutanix AHV
-- AWS EC2
-- Azure VM
-- Google Cloud VM
-- Bare-metal Ubuntu Server
+| Environment Type  | Recommended vCPU | Recommended RAM | Recommended Storage |
+| ----------------- | ---------------- | --------------- | ------------------- |
+| Small Lab / POC   | 2 vCPU           | 4 GB            | 40 GB               |
+| Medium Production | 4 vCPU           | 8 GB            | 80 GB               |
+| Large Enterprise  | 8+ vCPU          | 16+ GB          | 160+ GB             |
+
+---
+
+# Architecture Overview
+
+The connector is installed inside the customer/private network and establishes an outbound encrypted tunnel to the Devanti Gateway.
+
+No inbound firewall ports are required from the internet to the customer environment.
+
+```text
++-------------------+
+| Customer Network  |
+| Private Apps      |
++---------+---------+
+          |
+          |
++---------v---------+
+| Devanti Connector |
+| Outbound WSS TLS  |
++---------+---------+
+          |
+          | TCP 9443
+          |
++---------v---------+
+| Devanti Gateway   |
+| Zero Trust Access |
++---------+---------+
+          |
+          |
++---------v---------+
+| End Users         |
+| Browser / RDP     |
+| SSH / HTTPS       |
++-------------------+
+```
 
 ---
 
 # Customer Connector Flow
 
 1. Admin creates a connector record.
-2. Admin generates onboarding token.
+2. Admin generates a one-time onboarding token.
 3. Customer deploys Connector OVA or Docker container.
 4. Customer configures:
-   - Static IP
-   - DNS
-   - Gateway URL
-   - Connector Token
+
+   * Static IP
+   * Subnet / CIDR
+   * Default Gateway
+   * DNS
+   * Gateway URL
+   * Connector Token
 5. Connector registers with Devanti Control Plane.
-6. Connector establishes secure WSS tunnel to Gateway.
-7. Admin verifies connector online status.
+6. Control Plane validates the token and optionally issues connector-specific mTLS certificates.
+7. Connector establishes secure WSS tunnel to Gateway.
+8. Admin verifies connector online status and active tunnel.
+
+---
+
+# Connector Certificate Lifecycle
+
+## Certificate Components
+
+| Certificate / File           | Generated By                    | Purpose                      | Included in OVA |
+| ---------------------------- | ------------------------------- | ---------------------------- | --------------- |
+| Public TLS Certificate       | Let's Encrypt or Enterprise CA  | HTTPS identity for Gateway   | No              |
+| Gateway Connector CA         | Devanti Control Plane           | Signs connector certificates | No              |
+| Connector Client Certificate | Control Plane during onboarding | Connector mTLS identity      | No              |
+| Local UI Certificate         | Connector Appliance             | HTTPS local management UI    | Yes             |
+
+---
+
+## Certificate Usage Flow
+
+| Stage                       | Action                                             |
+| --------------------------- | -------------------------------------------------- |
+| Initial Deployment          | Connector starts using onboarding token            |
+| First Registration          | Control Plane validates onboarding token           |
+| Certificate Issuance        | Connector-specific mTLS certificates are generated |
+| Certificate Storage         | Certificates stored locally inside connector       |
+| Future Connections          | Connector automatically uses mTLS                  |
+| Secure Tunnel Establishment | Encrypted WSS tunnel established with Gateway      |
+
+---
+
+# First Registration Flow
+
+Expected first registration process:
+
+1. Admin creates connector record.
+2. Admin generates onboarding token.
+3. Connector starts with:
+
+```text
+CONNECTOR_MTLS_ENABLED=false
+```
+
+4. Connector registers with Control Plane using onboarding token.
+5. Control Plane validates token and issues connector-specific certificates.
+6. Connector stores:
+
+```text
+/etc/devanti/connector/certs/client.crt
+/etc/devanti/connector/certs/client.key
+/etc/devanti/connector/certs/ca.crt
+```
+
+7. Connector enables mTLS automatically for future starts.
+8. Connector establishes secure WSS tunnel.
 
 ---
 
@@ -81,20 +204,27 @@ The connector requires outbound internet access only.
 
 ## Required Outbound Firewall Rules
 
-| Protocol | Port | Destination |
-|---|---|---|
-| TCP | 9443 | access.devantisolutions.com |
-| TCP | 443 | hub.docker.com |
-| TCP | 443 | auth.docker.io |
-| TCP | 443 | production.cloudflare.docker.com |
-
-No inbound firewall ports from Devanti are required.
-
-The local connector HTTPS management UI listens only on TCP 443 inside the customer management network.
+| Protocol | Port | Destination                      | Purpose                        |
+| -------- | ---- | -------------------------------- | ------------------------------ |
+| TCP      | 9443 | access.devantisolutions.com      | Secure Gateway Connectivity    |
+| TCP      | 443  | registry-1.docker.io             | Docker Image Download          |
+| TCP      | 443  | auth.docker.io                   | Docker Registry Authentication |
+| TCP      | 443  | production.cloudflare.docker.com | Docker CDN Image Delivery      |
 
 ---
 
-# Install Docker
+## Important Notes
+
+| Item                   | Details                                                    |
+| ---------------------- | ---------------------------------------------------------- |
+| Inbound Firewall Rules | No inbound firewall rules from Devanti are required        |
+| Local Management UI    | HTTPS UI listens only on TCP 443 inside management network |
+| Tunnel Direction       | Outbound-only secure encrypted connectivity                |
+| Internet Requirement   | Outbound internet connectivity required                    |
+
+---
+
+# Install Docker on Ubuntu
 
 ## Update the System
 
@@ -129,11 +259,17 @@ sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 ---
 
-## Install Docker
+## Install Docker Engine
 
 ```bash
 sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+sudo apt install -y \
+docker-ce \
+docker-ce-cli \
+containerd.io \
+docker-buildx-plugin \
+docker-compose-plugin
 ```
 
 ---
@@ -146,7 +282,7 @@ sudo systemctl enable --now docker
 
 ---
 
-## Verify Docker
+## Verify Docker Installation
 
 ```bash
 docker version
@@ -155,6 +291,8 @@ docker version
 ---
 
 # Public Docker Hub Image
+
+Customer deployments use the public Docker Hub image:
 
 ```bash
 docker pull devantisolutions/secureaccess-connector:latest
@@ -170,15 +308,19 @@ sudo mkdir -p /etc/devanti/connector
 
 ---
 
-# Example Runtime Configuration
+# First-Boot Runtime Configuration
 
 ## Example config.yaml
 
 ```yaml
 connector_id: "c_bangalore-lab-new_wcg4nq"
+
 gateway_url: "https://access.devantisolutions.com:9443"
+
 gateway_ws_url: "wss://access.devantisolutions.com:9443/api/v1/connectors/ws"
+
 log_level: "info"
+
 reconnect_interval: "5s"
 
 mtls:
@@ -194,32 +336,118 @@ tls:
 
 ```env
 CONNECTOR_CONFIG_FILE=/etc/devanti/connector/config.yaml
+
 CONNECTOR_MTLS_ENABLED=false
+
 CONNECTOR_TOKEN=<connector-token>
+
 GATEWAY_URL=https://access.devantisolutions.com:9443
+
 GATEWAY_WS_URL=wss://access.devantisolutions.com:9443/api/v1/connectors/ws
+
+CONTROL_PLANE_URL=https://access.devantisolutions.com:9443
+
 CONNECTOR_ID=c_bangalore-lab-new_wcg4nq
+
+CONNECTOR_ORG_NAME="Devanti Lab"
+
 CONNECTOR_TLS_MODE=strict
+
+CONNECTOR_SERVER_NAME=access.devantisolutions.com
+```
+
+---
+
+# Important Notes
+
+## Initial Registration
+
+Use:
+
+```text
+CONNECTOR_MTLS_ENABLED=false
+```
+
+ONLY during first registration when no client certificates exist.
+
+After successful enrollment, the connector automatically enables mTLS using the issued connector certificates.
+
+---
+
+## Connector Identity
+
+Do NOT copy or reuse another connector's:
+
+```text
+client.crt
+client.key
+```
+
+These files represent the unique identity of the connector.
+
+Reusing them may cause:
+
+* Connector conflicts
+* Offline status
+* Tunnel authentication issues
+
+---
+
+## Control Plane URL
+
+Do NOT point:
+
+```text
+CONTROL_PLANE_URL
+```
+
+to the admin portal hostname.
+
+Use:
+
+```text
+https://access.devantisolutions.com:9443
 ```
 
 ---
 
 # Run Connector Container
 
+## Recommended Production Deployment
+
 ```bash
 docker run -d \
   --name devanti-connector \
   --restart unless-stopped \
+  --env-file /etc/devanti/connector/connector.env \
   -p 443:443 \
   -v /etc/devanti/connector:/etc/devanti/connector:rw \
+  -v /etc/ssl/certs:/etc/ssl/certs:ro \
+  -v /etc/netplan:/etc/netplan:rw \
+  -v /var/run/docker.sock:/var/run/docker.sock \
   devantisolutions/secureaccess-connector:latest
 ```
 
 ---
 
-# Access Local Management UI
+# Appliance Mount Requirements
 
-Open browser:
+Required persistent mounts:
+
+```text
+-v /etc/devanti/connector:/etc/devanti/connector:rw
+-v /etc/ssl/certs:/etc/ssl/certs:ro
+-v /etc/netplan:/etc/netplan:rw
+-v /var/run/docker.sock:/var/run/docker.sock
+```
+
+---
+
+# Local HTTPS Management UI
+
+The connector includes a local HTTPS management UI.
+
+Access:
 
 ```text
 https://<connector-ip>
@@ -229,7 +457,37 @@ Accept the self-signed certificate warning during first login.
 
 ---
 
-# Connector UI Repository Settings
+# Local UI Features
+
+The local connector UI provides:
+
+* Appliance configuration
+* Connector onboarding
+* Network settings
+* DNS settings
+* Gateway configuration
+* Tunnel status
+* Connector logs
+* Update management
+* Health diagnostics
+* Error summaries
+* Certificate status
+* Docker image update workflow
+
+---
+
+# Connector Update System
+
+The connector image includes built-in helper scripts:
+
+```text
+/usr/local/sbin/devanti-connector-setup
+/usr/local/sbin/devanti-connector-update
+```
+
+---
+
+# Local UI Repository Settings
 
 Public customer deployments should use:
 
@@ -238,58 +496,61 @@ Repository Server: docker.io
 Connector Image: devantisolutions/secureaccess-connector:latest
 ```
 
----
+Use this exact image:
 
-# Initial Configuration
-
-Configure:
-
-- Connector ID
-- Connector Token
-- Gateway URL
-- DNS
-- Network Settings
-- Hostname
-
-Save configuration to establish the secure tunnel.
-
----
-
-# Security Features
-
-- Outbound-only secure communication
-- Token-authenticated onboarding
-- WSS encrypted tunnel
-- Optional legacy mTLS support
-- HTTPS local management UI
-- Identity-aware access
-- Secure session handling
-- Zero Trust architecture
-- Role-based access control
-
----
-
-# Update Connector
-
-## Pull Latest Image
-
-```bash
-docker pull devantisolutions/secureaccess-connector:latest
+```text
+devantisolutions/secureaccess-connector:latest
 ```
 
 ---
 
-## Restart Connector
+# Installer Template
+
+Example customer-side installer:
 
 ```bash
-docker restart devanti-connector
+sudo ./scripts/install-connector.sh \
+  --image devantisolutions/secureaccess-connector:latest \
+  --gateway-url https://access.devantisolutions.com:9443 \
+  --connector-id c_bangalore-lab-new_wcg4nq \
+  --token '<connector-token>' \
+  --config-dir /etc/devanti/connector \
+  --systemd
+```
+
+---
+
+# Enable Connector Service
+
+```bash
+sudo systemctl daemon-reload
+
+sudo systemctl enable --now devanti-connector
+
+sudo journalctl -u devanti-connector -f
 ```
 
 ---
 
 # Validation
 
-## Check Container Status
+## Check Service Status
+
+```bash
+systemctl status devanti-connector
+```
+
+---
+
+## Check Logs
+
+```bash
+journalctl -u devanti-connector -f
+```
+
+---
+
+## Check Docker Container
 
 ```bash
 docker ps
@@ -297,7 +558,7 @@ docker ps
 
 ---
 
-## Check Logs
+## Check Connector Logs
 
 ```bash
 docker logs devanti-connector --tail=100
@@ -321,13 +582,13 @@ docker pull devantisolutions/secureaccess-connector:latest
 
 ---
 
-# Expected Connector Logs
+# Expected Successful Logs
 
-Expected successful logs include:
+Expected connector logs include:
 
-- connector registered
-- connector websocket auth success
-- connector tunnel connected
+* connector registered
+* connector websocket auth success
+* connector tunnel connected
 
 ---
 
@@ -335,42 +596,57 @@ Expected successful logs include:
 
 Admin Portal should display:
 
-- connector online status
-- heartbeat updates
-- active tunnel status
-- accessible mapped resources
+* Connector online status
+* Heartbeat updates
+* Active tunnel status
+* Last seen timestamp
+* Connected gateway
+* Accessible mapped resources
 
 ---
 
 # OVA Deployment
 
-For VMware enterprise deployments, Devanti Solutions also provides a prebuilt Connector OVA appliance for simplified onboarding.
+For enterprise VMware deployments, Devanti Solutions also provides a prebuilt Connector OVA appliance for simplified onboarding.
+
+The OVA deployment wizard includes:
+
+* Static IP configuration
+* DNS configuration
+* Gateway URL configuration
+* Connector token onboarding
+* Automatic connector registration
 
 ---
 
 # SaaS Platform
 
-Customers securely access applications through the Devanti SecureAccess cloud platform without deploying core infrastructure components.
+Customers securely access private applications through the Devanti SecureAccess cloud platform without exposing internal infrastructure to the internet.
 
 ---
 
 # Product Website
 
-https://devantisolutions.com/devanti-secure-access
+[Devanti SecureAccess Product Page](https://devantisolutions.com/devanti-secure-access?utm_source=chatgpt.com)
 
 ---
 
 # Company
 
-Devanti Solutions  
+[Devanti Solutions](https://devantisolutions.com?utm_source=chatgpt.com)
 Smart Infra Intelligence
-
-https://devantisolutions.com
 
 ---
 
 # Support
 
-For deployment assistance, onboarding, or enterprise integration support:
+[Devanti Support Portal](https://devantisolutions.com/support?utm_source=chatgpt.com)
 
-https://devantisolutions.com/support
+---
+
+# License
+
+Copyright © Devanti Solutions.
+All Rights Reserved.
+
+Derived from uploaded deployment documents. 
